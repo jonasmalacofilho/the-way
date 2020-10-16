@@ -416,10 +416,9 @@ fn delete() -> color_eyre::Result<()> {
     Ok(())
 }
 
-#[cfg(target_os = "macos")]
 #[test]
 fn copy() -> color_eyre::Result<()> {
-    use clipboard::{ClipboardContext, ClipboardProvider};
+    use arboard::Clipboard;
 
     let contents = r#"{"description":"test description","language":"rust","tags":["tag1","tag2"],"code":"some\ntest\ncode\n"}"#;
     let temp_dir = tempdir()?;
@@ -448,10 +447,11 @@ fn copy() -> color_eyre::Result<()> {
         .stdout(predicate::str::starts_with(
             "Copied snippet #1 to clipboard",
         ));
-    let ctx: color_eyre::Result<ClipboardContext, _> = ClipboardProvider::new();
+
+    let ctx: color_eyre::Result<Clipboard, _> = Clipboard::new();
     assert!(ctx.is_ok());
     let mut ctx = ctx.unwrap();
-    let contents = ctx.get_contents();
+    let contents = ctx.get_text();
     assert!(contents.is_ok());
     let contents = contents.unwrap();
     assert!(contents.contains("some\ntest\ncode"));
@@ -459,18 +459,17 @@ fn copy() -> color_eyre::Result<()> {
     Ok(())
 }
 
-#[cfg(target_os = "macos")]
 #[test]
 fn copy_shell_script() -> color_eyre::Result<()> {
-    use clipboard::{ClipboardContext, ClipboardProvider};
+    use arboard::Clipboard;
 
     let temp_dir = tempdir()?;
     let config_file = make_config_file(&temp_dir)?;
     assert!(copy_shell_script_rexpect(config_file).is_ok());
-    let ctx: color_eyre::Result<ClipboardContext, _> = ClipboardProvider::new();
+    let ctx: color_eyre::Result<Clipboard, _> = Clipboard::new();
     assert!(ctx.is_ok());
     let mut ctx = ctx.unwrap();
-    let contents = ctx.get_contents();
+    let contents = ctx.get_text();
     assert!(contents.is_ok());
     let contents = contents.unwrap();
     assert!(contents.contains("shell snippet value1 code value2 value1"));
